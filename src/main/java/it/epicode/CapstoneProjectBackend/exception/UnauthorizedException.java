@@ -1,0 +1,8 @@
+package it.epicode.CapstoneProjectBackend.exception;
+
+public class UnauthorizedException extends RuntimeException {
+    public UnauthorizedException(String message) {
+
+        super(message);
+    }
+}
