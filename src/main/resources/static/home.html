@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Home - Capstone Project</title>
+  <style>
+    body {
+      font-family: 'Fira Code', monospace;
+      background: linear-gradient(135deg, #0a0f2c, #1a1f3c);
+      color: #d4d4d4;
+      margin: 0;
+      padding: 20px;
+    }
+
+    header {
+      background-color: #252526;
+      padding: 15px;
+      color: #9cdcfe;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: left;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .user-info {
+      margin-top: 40px;
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+      max-width: 400px;
+    }
+
+    .error {
+      color: #f44747;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+<header>Capstone Project by Luca Ferrara</header>
+
+<div class="user-info" id="userInfo">
+  <p>Caricamento dati utente...</p>
+</div>
+
+<div class="error" id="errorMsg"></div>
+
+<script>
+  async function getUserData() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      document.getElementById("errorMsg").textContent = "Token non presente. Fai login prima.";
+      document.getElementById("userInfo").innerHTML = "";
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8080/users/me", {
+        headers: {
+          "Authorization": "Bearer " + token
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error("Errore " + response.status + ": accesso negato o token non valido");
+      }
+
+      const user = await response.json();
+
+      document.getElementById("userInfo").innerHTML = `
+        <h2>Benvenuto, ${user.nome}!</h2>
+        <p><strong>Username:</strong> ${user.username}</p>
+        <p><strong>Email:</strong> ${user.email}</p>
+        <p><strong>Ruolo:</strong> ${user.userType}</p>
+      `;
+
+    } catch (error) {
+      document.getElementById("errorMsg").textContent = "Errore: " + error.message;
+      document.getElementById("userInfo").innerHTML = "";
+    }
+  }
+
+  getUserData();
+</script>
+</body>
+</html>

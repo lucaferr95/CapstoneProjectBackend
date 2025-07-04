@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <title>Registrati</title>
+    <style>
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: 'Fira Code', monospace;
+          background: linear-gradient(135deg, #0a0f2c, #1a1f3c);
+          height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: #d4d4d4;
+        }
+
+        .register-container {
+          background-color: #252526;
+          padding: 40px;
+          border-radius: 8px;
+          box-shadow: 0 0 20px rgba(0,0,0,0.5);
+          width: 360px;
+        }
+
+        h2 {
+          text-align: center;
+          margin-bottom: 30px;
+          color: #569cd6;
+        }
+
+        .input-group {
+          position: relative;
+          margin-bottom: 25px;
+        }
+
+        .input-group input {
+          width: 100%;
+          padding: 12px;
+          border: 1px solid #3c3c3c;
+          border-radius: 4px;
+          background-color: #1e1e1e;
+          color: #dcdcdc;
+          font-size: 14px;
+          transition: border 0.3s;
+        }
+
+        .input-group input:focus {
+          outline: none;
+          border-color: #007acc;
+          box-shadow: 0 0 0 1px #007acc;
+        }
+
+        .input-group label {
+          position: absolute;
+          left: 12px;
+          top: 13px;
+          color: #888;
+          background: #252526;
+          padding: 0 4px;
+          transition: 0.2s ease;
+          pointer-events: none;
+          font-size: 14px;
+        }
+
+        .input-group input:focus + label,
+        .input-group input:not(:placeholder-shown) + label {
+          top: -10px;
+          left: 10px;
+          font-size: 12px;
+          color: #007acc;
+        }
+
+        button {
+          width: 100%;
+          padding: 12px;
+          border: none;
+          background-color: #0e639c;
+          color: white;
+          font-weight: bold;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+
+        button:hover {
+          background-color: #1177bb;
+        }
+
+        p {
+          text-align: center;
+          margin-top: 20px;
+          font-size: 14px;
+          color: #ccc;
+        }
+
+        p a {
+          color: #9cdcfe;
+          text-decoration: none;
+        }
+
+        p a:hover {
+          text-decoration: underline;
+        }
+
+        .banner {
+          position: absolute;
+          top: 10px;
+          left: 10px;
+          font-size: 14px;
+          color: #9cdcfe;
+        }
+    </style>
+</head>
+<body>
+
+<div class="banner">Capstone Project by Luca Ferrara</div>
+
+<div class="register-container">
+    <h2>Registrati</h2>
+    <form id="registerForm">
+        <div class="input-group">
+            <input type="text" name="nome" id="nome" required placeholder=" " />
+            <label for="nome">Nome</label>
+        </div>
+
+        <div class="input-group">
+            <input type="text" name="cognome" id="cognome" required placeholder=" " />
+            <label for="cognome">Cognome</label>
+        </div>
+
+        <div class="input-group">
+            <input type="text" name="username" id="username" required placeholder=" " />
+            <label for="username">Username</label>
+        </div>
+
+        <div class="input-group">
+            <input type="email" name="email" id="email" required placeholder=" " />
+            <label for="email">Email</label>
+        </div>
+
+        <div class="input-group">
+            <input type="password" name="password" id="password" required placeholder=" " />
+            <label for="password">Password</label>
+        </div>
+
+        <button type="submit">Registrati</button>
+    </form>
+    <p><a href="login.html">Già registrato? Vai al Log In</a></p>
+</div>
+
+<script>
+    const form = document.getElementById("registerForm");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const data = {
+        nome: form.nome.value,
+        cognome: form.cognome.value,
+        username: form.username.value,
+        email: form.email.value,
+        password: form.password.value,
+      };
+
+      try {
+        const response = await fetch("http://localhost:8080/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+          alert("Registrazione completata con successo!");
+          window.location.href = "login.html";
+        } else {
+          const error = await response.json();
+          alert("Errore: " + (error.message || "Registrazione fallita"));
+        }
+      } catch (error) {
+        alert("Errore di rete: " + error.message);
+      }
+    });
+</script>
+
+</body>
+</html>
