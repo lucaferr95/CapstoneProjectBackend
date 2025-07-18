@@ -12,9 +12,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
 
 @Service
 public class UserService {
@@ -24,6 +33,8 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JavaMailSenderImpl javaMailSender;
 
     public UserResponseDto toResponse(User user) {
         UserResponseDto response = new UserResponseDto();
@@ -36,7 +47,7 @@ public class UserService {
         return response;
     }
 
-    public User saveUser(UserDto userDto){
+    public User saveUser(UserDto userDto) {
 
         if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
             throw new RuntimeException("Username già in uso");
@@ -54,16 +65,17 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         user.setUserType(UserType.USER);
 
+        sendMail(user.getEmail(), user);
         return userRepository.save(user);
     }
 
     public User getUser(int id) throws NotFoundException {
         return userRepository.findById(id).
-                orElseThrow(()-> new NotFoundException("User con id "
+                orElseThrow(() -> new NotFoundException("User con id "
                         + id + " non trovato"));
     }
 
-    public Page<User> getAllUsers(int page, int size, String sortBy){
+    public Page<User> getAllUsers(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         return userRepository.findAll(pageable);
     }
@@ -83,13 +95,14 @@ public class UserService {
         userDaAggiornare.setEmail(userDto.getEmail());
         userDaAggiornare.setUsername(userDto.getUsername());
         userDaAggiornare.setCognome(userDto.getCognome());
-        if (!passwordEncoder.matches(userDto.getPassword(), userDaAggiornare.getPassword())){
+        if (!passwordEncoder.matches(userDto.getPassword(), userDaAggiornare.getPassword())) {
             userDaAggiornare.setPassword(passwordEncoder.encode(userDto.getPassword()));
         }
 
 
         return userRepository.save(userDaAggiornare);
     }
+
     public void deleteUser(int id) throws NotFoundException {
         User userAutenticato = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -102,4 +115,36 @@ public class UserService {
         userRepository.delete(userDaEliminare);
     }
 
+    private void sendMail(String email, User user) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("Registrazione al nostro sito");
+        message.setText("Ciao " + user.getNome() + "!\n\n" +
+                "Benvenuto/a su Fuori di Testo. Siamo felici che tu sia dei nostri 🎶\n\n" +
+                "Username: " + user.getUsername() + "\n\n" +
+                "Buon divertimento!");
+
+        javaMailSender.send(message);
+    }
+
+    public User findByUsername(String username) throws NotFoundException {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Utente non trovato con username: " + username));
+    }
+
+    public String patchUser(int id, MultipartFile file) throws IOException, NotFoundException {
+        User user = getUser(id);
+
+        String fileName = "avatar_" + id + "_" + file.getOriginalFilename();
+        Path path = Paths.get("uploads/avatars", fileName);
+
+        Files.createDirectories(path.getParent());
+        Files.write(path, file.getBytes());
+
+        String avatarUrl = "http://localhost:8080/uploads/avatars/" + fileName;
+        user.setAvatar(avatarUrl);
+        userRepository.save(user);
+
+        return avatarUrl;
+    }
 }

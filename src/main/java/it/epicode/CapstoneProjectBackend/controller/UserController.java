@@ -9,12 +9,16 @@ import it.epicode.CapstoneProjectBackend.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.stream.Collectors;
 
 @RestController
@@ -76,4 +80,29 @@ public class UserController {
     public void deleteUser(@PathVariable int id) throws NotFoundException {
         userService.deleteUser(id);
     }
+    @PatchMapping("/{id}/avatar")
+    public ResponseEntity<String> updateAvatar(@PathVariable int id,
+                                               @RequestParam("file") MultipartFile file) {
+        try {
+            String url = userService.patchUser(id, file);
+            return ResponseEntity.ok(url);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Errore avatar");
+        }
+    }
+
+    @PatchMapping("/me/avatar")
+    @PreAuthorize("isAuthenticated()")
+
+    public ResponseEntity<String> updateAvatar(@RequestParam("file") MultipartFile file, Authentication auth)
+            throws NotFoundException, IOException {
+        User user = (User) auth.getPrincipal();
+        String url = userService.patchUser(user.getId(), file);
+        System.out.println("Authentication: " + auth);
+        System.out.println("Authorities: " + auth.getAuthorities());
+
+        return ResponseEntity.ok(url);
+    }
+
+
 }

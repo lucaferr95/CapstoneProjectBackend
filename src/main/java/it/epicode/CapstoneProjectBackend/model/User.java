@@ -3,7 +3,9 @@ package it.epicode.CapstoneProjectBackend.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.epicode.CapstoneProjectBackend.enums.UserType;
 import jakarta.persistence.*;
-import lombok.Data;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,32 +13,44 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
     @Id
     @GeneratedValue
-    private int id;
-    @Column(unique = true)
+    private Integer id;
+    @Size(min = 4, max = 255)
     private String username;
     @Column(unique = true)
     private String email;
+    @Size(min = 4, max = 255)
     private String password;
     private String nome;
     private String cognome;
+    private String avatar;
     @Enumerated(EnumType.STRING)
     private UserType userType;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true) //se cancello un utente si cancellano anche i preferiti
     @JsonIgnore
     private List<Favorite> favorites;
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private List<Feedback> feedback;
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(userType.name()));
+        String role = userType != null ? "ROLE_" + userType.name().toUpperCase() : "ROLE_USER";
+        return List.of(new SimpleGrantedAuthority(role));
     }
+
+
 
     @Override
     public boolean isAccountNonExpired() {
@@ -58,4 +72,19 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", nome='" + nome + '\'' +
+                ", cognome='" + cognome + '\'' +
+                ", avatar='" + avatar + '\'' +
+                ", userType=" + userType +
+                '}';
+    }
+
+
+
 }

@@ -6,6 +6,7 @@ import it.epicode.CapstoneProjectBackend.exception.NotFoundException;
 import it.epicode.CapstoneProjectBackend.model.Favorite;
 import it.epicode.CapstoneProjectBackend.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,6 +22,7 @@ public class FavoriteController {
     private FavoriteService favoriteService;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Favorite addFavorite(@RequestBody FavoriteDto dto,
                                 @AuthenticationPrincipal User user) throws NotFoundException {
         return favoriteService.addFavorite(user, dto);
