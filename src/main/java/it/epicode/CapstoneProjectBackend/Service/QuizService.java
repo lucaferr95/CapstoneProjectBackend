@@ -28,7 +28,10 @@ public class QuizService {
         return quizRepository.findByUserAndDate(user, LocalDate.now()).isPresent();
     }
 
-    public Integer getTotalScore(User user) {
-        return quizRepository.getTotalScore(user);
+
+    public int getPoints(User user) {
+        Integer punti = quizRepository.sumPointsByUser(user.getId());
+        return punti != null ? punti : 0;
     }
+
 }

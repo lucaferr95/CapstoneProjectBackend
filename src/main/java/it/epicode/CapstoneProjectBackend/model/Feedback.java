@@ -15,10 +15,11 @@ public class Feedback {
     private int id;
     private String comment;
     @CreationTimestamp
-    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate createdAt;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+    @Column(nullable = false)
+    private String type = "feedback";
 
 }

@@ -35,4 +35,15 @@ public class QuizController {
         quizService.saveQuiz(user, result.getScore());
         return ResponseEntity.ok("Quiz salvato con successo");
     }
+    @GetMapping("/punti")
+    public ResponseEntity<Integer> getUserPoints(@AuthenticationPrincipal UserDetails userDetails) throws NotFoundException {
+        User user = userService.findByUsername(userDetails.getUsername());
+        int punti = quizService.getPoints(user);
+        System.out.println("Punti calcolati: " + punti);
+
+        return ResponseEntity.ok(punti);
+
+    }
+
+
 }

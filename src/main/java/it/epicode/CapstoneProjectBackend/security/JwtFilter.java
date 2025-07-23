@@ -70,6 +70,9 @@ public class JwtFilter extends OncePerRequestFilter {
                     user.getPassword(),
                     user.getAuthorities()
             );
+            System.out.println("Token ricevuto: " + token);
+            System.out.println("Username nel token: " + username);
+            System.out.println("Authorities: " + springUser.getAuthorities());
 
             Authentication auth = new UsernamePasswordAuthenticationToken(
                     springUser,

@@ -59,6 +59,12 @@ public class SecurityConfig { ;
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/feedback/**").hasRole("ADMIN")
                         .requestMatchers("/api/feedback/backoffice").hasRole("ADMIN")
+                        .requestMatchers("/quiz/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/punti/manuale").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/punti/classifica").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/punti/totali").hasRole("ADMIN")
+
+
 
                         // blocca tutte le altre richieste
                 .anyRequest().denyAll()

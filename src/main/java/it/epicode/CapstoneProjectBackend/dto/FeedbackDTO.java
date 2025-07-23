@@ -7,4 +7,5 @@ import lombok.Data;
 public class FeedbackDTO {
     @NotEmpty(message = "Il campo 'comment' non può essere vuoto")
     private String comment;
+    private String type;
 }
