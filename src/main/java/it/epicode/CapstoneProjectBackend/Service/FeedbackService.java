@@ -28,7 +28,7 @@ public class FeedbackService {
 
         Feedback feedback = new Feedback();
         feedback.setComment(feedbackDTO.getComment());
-        feedback.setType(feedbackDTO.getType());
+        feedback.setType(feedbackDTO.getType() != null ? feedbackDTO.getType() : "feedback");
         feedback.setUser(user);
 
         return feedbackRepository.save(feedback);
