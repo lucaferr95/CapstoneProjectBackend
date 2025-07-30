@@ -80,29 +80,13 @@ public class UserController {
     public void deleteUser(@PathVariable int id) throws NotFoundException {
         userService.deleteUser(id);
     }
-    @PatchMapping("/{id}/avatar")
-    public ResponseEntity<String> updateAvatar(@PathVariable int id,
-                                               @RequestParam("file") MultipartFile file) {
-        try {
-            String url = userService.patchUser(id, file);
-            return ResponseEntity.ok(url);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Errore avatar");
-        }
+    
+
+    @PatchMapping("/users/me/avatar")
+    public ResponseEntity<String> uploadAvatar(@RequestParam("file") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(userService.patchUser(file));
     }
 
-    @PatchMapping("/me/avatar")
-    @PreAuthorize("isAuthenticated()")
-
-    public ResponseEntity<String> updateAvatar(@RequestParam("file") MultipartFile file, Authentication auth)
-            throws NotFoundException, IOException {
-        User user = (User) auth.getPrincipal();
-        String url = userService.patchUser(user.getId(), file);
-        System.out.println("Authentication: " + auth);
-        System.out.println("Authorities: " + auth.getAuthorities());
-
-        return ResponseEntity.ok(url);
-    }
 
 
 }

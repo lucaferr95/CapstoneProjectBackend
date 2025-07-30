@@ -139,15 +139,16 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("Utente non trovato con username: " + username));
     }
 
-    public String patchUser(int id, MultipartFile file) throws IOException, NotFoundException {
-        User user = getUser(id);
+    public String patchUser(MultipartFile file) throws IOException {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-
         String avatarUrl = (String) uploadResult.get("secure_url");
+
         user.setAvatar(avatarUrl);
         userRepository.save(user);
 
         return avatarUrl;
     }
+
 }
