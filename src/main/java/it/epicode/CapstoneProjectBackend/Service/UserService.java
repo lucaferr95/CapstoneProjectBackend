@@ -1,5 +1,7 @@
 package it.epicode.CapstoneProjectBackend.Service;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import it.epicode.CapstoneProjectBackend.dto.UserDto;
 import it.epicode.CapstoneProjectBackend.dto.UserResponseDto;
 import it.epicode.CapstoneProjectBackend.enums.UserType;
@@ -7,6 +9,8 @@ import it.epicode.CapstoneProjectBackend.exception.NotFoundException;
 import it.epicode.CapstoneProjectBackend.exception.UnauthorizedException;
 import it.epicode.CapstoneProjectBackend.model.User;
 import it.epicode.CapstoneProjectBackend.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.Map;
 
 @Service
 public class UserService {
@@ -35,6 +40,8 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private JavaMailSenderImpl javaMailSender;
+    @Autowired
+    private Cloudinary cloudinary;
 
     public UserResponseDto toResponse(User user) {
         UserResponseDto response = new UserResponseDto();
@@ -135,13 +142,9 @@ public class UserService {
     public String patchUser(int id, MultipartFile file) throws IOException, NotFoundException {
         User user = getUser(id);
 
-        String fileName = "avatar_" + id + "_" + file.getOriginalFilename();
-        Path path = Paths.get("uploads/avatars", fileName);
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
 
-        Files.createDirectories(path.getParent());
-        Files.write(path, file.getBytes());
-
-        String avatarUrl = "http://localhost:8080/uploads/avatars/" + fileName;
+        String avatarUrl = (String) uploadResult.get("secure_url");
         user.setAvatar(avatarUrl);
         userRepository.save(user);
 
