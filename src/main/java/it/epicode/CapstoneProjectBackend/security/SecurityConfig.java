@@ -84,9 +84,8 @@ public class SecurityConfig { ;
     @Bean // permette di abilitare l'accesso al servizio anche da parte di server diversi da quello su cui risiede il servizio
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(List.of("*")); // "*" permette a qualsiasi origine di accedere al servizio
-        corsConfiguration.setAllowedMethods(List.of("*"));
-        corsConfiguration.setAllowedHeaders(List.of("*")); // abilita tutte le intestazioni (utile per Authorization)
+        corsConfiguration.setAllowedOrigins(List.of("https://capstoneproject-woad.vercel.app"));
+
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
