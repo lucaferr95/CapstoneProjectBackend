@@ -65,6 +65,7 @@ public class SecurityConfig { ;
                         .requestMatchers(HttpMethod.GET, "/punti/totali").authenticated()
                         .requestMatchers(HttpMethod.POST, "/punti/aggiungi").authenticated()
                         .requestMatchers(HttpMethod.GET, "/punti/me").authenticated()
+                        .requestMatchers("/punti/**").authenticated()
 
 
 
