@@ -80,7 +80,7 @@ public class UserController {
     public void deleteUser(@PathVariable int id) throws NotFoundException {
         userService.deleteUser(id);
     }
-    
+
 
     @PatchMapping("/users/me/avatar")
     public ResponseEntity<String> uploadAvatar(@RequestParam("file") MultipartFile file) throws IOException {
