@@ -83,9 +83,15 @@ public class UserController {
 
 
     @PatchMapping("/me/avatar")
-    public ResponseEntity<String> uploadAvatar(@RequestParam("file") MultipartFile file) throws IOException, NotFoundException {
-        return ResponseEntity.ok(userService.patchUser(file));
+    public ResponseEntity<String> uploadAvatar(@RequestParam("file") MultipartFile file,
+                                               Authentication authentication) throws IOException, NotFoundException {
+        // Non castare direttamente, prendi l’username
+        String username = authentication.getName();
+        String avatarUrl = userService.patchUser(username, file);
+        return ResponseEntity.ok(avatarUrl);
     }
+
+
 
 
 

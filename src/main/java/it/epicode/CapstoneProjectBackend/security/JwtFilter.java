@@ -4,6 +4,7 @@ import it.epicode.CapstoneProjectBackend.Service.UserService;
 import it.epicode.CapstoneProjectBackend.exception.NotFoundException;
 import it.epicode.CapstoneProjectBackend.exception.UnauthorizedException;
 import it.epicode.CapstoneProjectBackend.model.User;
+import it.epicode.CapstoneProjectBackend.security.JwtTool;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,8 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         AntPathMatcher matcher = new AntPathMatcher();
 
-        if (method.equals("GET") &&
-                Arrays.stream(publicGetEndpoints).anyMatch(p -> matcher.match(p, path))) {
+        if (method.equals("GET") && Arrays.stream(publicGetEndpoints).anyMatch(p -> matcher.match(p, path))) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -59,13 +59,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             String username = jwtTool.getUsernameFromToken(token);
-            User user = userService.findByUsername(username);
+            User user = userService.findByUsername(username); // <-- tuo User personalizzato
 
             Authentication auth = new UsernamePasswordAuthenticationToken(
-                    user, // Salva direttamente il tuo oggetto User
+                    user.getUsername(), // <--- NON il tuo user model!
                     null,
                     user.getAuthorities()
             );
+
 
             SecurityContextHolder.getContext().setAuthentication(auth);
 
@@ -77,7 +78,7 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    protected boolean shouldNotFilter(HttpServletRequest request) {
         String[] excludedEndpoints = {
                 "/auth/login",
                 "/auth/register",

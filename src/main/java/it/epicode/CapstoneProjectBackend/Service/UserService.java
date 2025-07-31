@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -90,7 +91,9 @@ public class UserService {
     public User updateUser(int id, UserDto userDto)
             throws NotFoundException {
 
-        User userAutenticato = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User userAutenticato = findByUsername(username);
+
 
         if (!userAutenticato.getUserType().name().equals("ADMIN") && userAutenticato.getId() != id) {
             throw new UnauthorizedException("Non puoi modificare un altro user.");
@@ -139,8 +142,9 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("Utente non trovato con username: " + username));
     }
 
-    public String patchUser(MultipartFile file) throws IOException {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public String patchUser(String username, MultipartFile file) throws IOException, NotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Utente non trovato"));
 
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
         String avatarUrl = (String) uploadResult.get("secure_url");
@@ -150,6 +154,8 @@ public class UserService {
 
         return avatarUrl;
     }
+
+
 
 
 }
