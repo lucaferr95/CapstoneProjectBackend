@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +27,11 @@ public class FeedbackController {
     @ResponseStatus(HttpStatus.CREATED)
 
     public Feedback submitFeedback(@RequestBody @Valid FeedbackDTO feedbackDTO,
-                                   @AuthenticationPrincipal UserDetails userDetails) throws NotFoundException {
-        return feedbackService.saveFeedback(feedbackDTO, userDetails.getUsername());
+                                   Authentication authentication)
+    throws NotFoundException {
+        String username = authentication.getName();
+        return feedbackService.saveFeedback(feedbackDTO, username);
+
     }
 
     @GetMapping
