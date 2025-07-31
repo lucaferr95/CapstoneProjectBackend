@@ -22,12 +22,17 @@ public class FavoriteService {
 
     @Autowired
     private SongRepository songRepository;
+    @Autowired
+    private PointsService pointsService;
+
+
+    @Autowired
+    private PointsService pointsService;
 
     public Favorite addFavorite(User user, FavoriteDto dto) throws NotFoundException {
         Song song = songRepository.findById(dto.getSongId())
                 .orElseThrow(() -> new NotFoundException("Canzone non trovata"));
 
-        // Evita duplicati
         if (favoriteRepository.findByUserIdAndSongId(user.getId(), dto.getSongId()).isPresent()) {
             throw new AlreadyFavException("La canzone è già nei preferiti");
         }
@@ -36,9 +41,16 @@ public class FavoriteService {
         favorite.setUser(user);
         favorite.setSong(song);
         favorite.setSavedAt(LocalDateTime.now());
+        favoriteRepository.save(favorite);
 
-        return favoriteRepository.save(favorite);
+        // Aggiunta logica punteggio
+        pointsService.addPointsIfNotExceeded(user.getId(), 5);
+
+        return favorite;
     }
+
+
+
 
     public List<Favorite> getFavoritesByUser(User user) {
         return favoriteRepository.findByUserId(user.getId());

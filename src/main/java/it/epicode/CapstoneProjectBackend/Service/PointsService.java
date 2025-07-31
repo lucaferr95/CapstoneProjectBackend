@@ -34,5 +34,21 @@ public class PointsService {
     public List<Points> getAllPoints() {
         return pointsRepository.findAll();
     }
+    public void addPointsIfNotExceeded(int userId, int pointsToAdd) {
+        Points entry = pointsRepository.findByUserId(userId).orElse(new Points());
+        LocalDate today = LocalDate.now();
+
+        if (!today.equals(entry.getLastUpdated())) {
+            entry.setPoints(pointsToAdd);
+            entry.setLastUpdated(today);
+        } else if (entry.getPoints() < 20) { // max 4 aggiunte x 5 punti
+            entry.setPoints(entry.getPoints() + pointsToAdd);
+        } else {
+            return; // Limite giornaliero raggiunto, non sommare
+        }
+
+        entry.setUserId(userId);
+        pointsRepository.save(entry);
+    }
 
 }
