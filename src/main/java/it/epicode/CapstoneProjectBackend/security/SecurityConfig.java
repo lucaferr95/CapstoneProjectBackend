@@ -63,6 +63,8 @@ public class SecurityConfig { ;
                         .requestMatchers(HttpMethod.POST, "/punti/manuale").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/punti/classifica").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/punti/totali").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/punti/aggiungi").authenticated()
+
 
 
 
