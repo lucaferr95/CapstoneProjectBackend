@@ -62,7 +62,7 @@ public class SecurityConfig { ;
                         .requestMatchers("/quiz/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/punti/manuale").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/punti/classifica").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/punti/totali").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/punti/totali").authenticated()
                         .requestMatchers(HttpMethod.POST, "/punti/aggiungi").authenticated()
 
 
