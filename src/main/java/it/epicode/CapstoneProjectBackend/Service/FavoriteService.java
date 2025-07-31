@@ -25,10 +25,6 @@ public class FavoriteService {
     @Autowired
     private PointsService pointsService;
 
-
-    @Autowired
-    private PointsService pointsService;
-
     public Favorite addFavorite(User user, FavoriteDto dto) throws NotFoundException {
         Song song = songRepository.findById(dto.getSongId())
                 .orElseThrow(() -> new NotFoundException("Canzone non trovata"));
