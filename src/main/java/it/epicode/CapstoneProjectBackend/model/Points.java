@@ -1,9 +1,6 @@
 package it.epicode.CapstoneProjectBackend.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
@@ -21,5 +18,15 @@ public class Points {
     private LocalDate lastUpdated;
     @Column(nullable = false)
     private int points;
+    @ManyToOne
+    private User user;
 
+    public Points(User user, int points) {
+        this.user = user;
+        this.userId = user.getId(); // se hai anche questo campo separato
+        this.points = points;
+        this.lastUpdated = LocalDate.now();
+    }
+    public Points() {
+    }
 }

@@ -26,6 +26,14 @@ public class PointsController {
     private UserService userService;
     @Autowired
     private QuizService quizService;
+    @PostMapping("/aggiungi")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> aggiungiPunti(@AuthenticationPrincipal UserDetails userDetails,
+                                                @RequestParam int amount) throws NotFoundException {
+        User user = userService.findByUsername(userDetails.getUsername());
+        pointsService.aggiungiPuntiUtente(user, amount);
+        return ResponseEntity.ok("Punti aggiunti con successo");
+    }
 
     @PostMapping("/manuale")
     @PreAuthorize("hasRole('ADMIN')")
