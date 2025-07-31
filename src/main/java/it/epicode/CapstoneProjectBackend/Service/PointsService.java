@@ -16,29 +16,37 @@ public class PointsService {
     @Autowired
     private PointsRepository pointsRepository;
 
+    @Autowired
+    private UserService userService;
+
     // Aggiornamento manuale da ADMIN
-    public void updatePoints(int userId, int newPoints) {
-        Points entry = pointsRepository.findByUserId(userId).orElse(new Points());
-        entry.setUserId(userId);
-        entry.setLastUpdated(LocalDate.now());
+    public void updatePoints(int userId, int newPoints) throws NotFoundException {
+        User user = userService.findById(userId); // Ottiene l'entità utente
+        Points entry = pointsRepository.findByUserId(userId)
+                .orElse(new Points(user, 0)); // Crea nuovo record se assente
+
         entry.setPoints(newPoints);
+        entry.setLastUpdated(LocalDate.now());
         pointsRepository.save(entry);
     }
 
-    // Recupera i punti dalla tabella (usata per preferiti e punteggio totale)
+    // Recupera i punti di un utente
     public Points getPoints(int userId) throws NotFoundException {
         return pointsRepository.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("Nessun dato punti trovato"));
+                .orElseThrow(() -> new NotFoundException("Nessun dato punti trovato per l'utente con ID " + userId));
     }
 
-    // Classifica completa
+    // Ritorna la classifica completa
     public List<Points> getAllPoints() {
         return pointsRepository.findAll();
     }
 
-    // Aggiunta automatica (preferiti) con limite giornaliero di 20
-    public void addPointsIfNotExceeded(int userId, int pointsToAdd) {
-        Points entry = pointsRepository.findByUserId(userId).orElse(new Points());
+    // Aggiunta automatica con limite giornaliero di 20 punti
+    public void addPointsIfNotExceeded(int userId, int pointsToAdd) throws NotFoundException {
+        User user = userService.findById(userId);
+        Points entry = pointsRepository.findByUserId(userId)
+                .orElse(new Points(user, 0));
+
         LocalDate today = LocalDate.now();
 
         if (!today.equals(entry.getLastUpdated())) {
@@ -48,18 +56,18 @@ public class PointsService {
             int nuoviPunti = Math.min(20, entry.getPoints() + pointsToAdd);
             entry.setPoints(nuoviPunti);
         } else {
-            return; // limite già raggiunto
+            return; // limite raggiunto
         }
 
-        entry.setUserId(userId);
         pointsRepository.save(entry);
     }
 
-    // Metodo usato da /punti/aggiungi (quiz o preferiti, nessun limite applicato)
+    // Aggiunta libera di punti (es. quiz)
     public void aggiungiPuntiUtente(User user, int amount) {
         Points punti = pointsRepository.findByUserId(user.getId())
                 .orElseGet(() -> new Points(user, 0));
         punti.setPoints(punti.getPoints() + amount);
+        punti.setLastUpdated(LocalDate.now());
         pointsRepository.save(punti);
     }
 }

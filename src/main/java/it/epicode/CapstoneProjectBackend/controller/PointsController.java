@@ -38,7 +38,7 @@ public class PointsController {
 
     @PostMapping("/manuale")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> updateManualPoints(@RequestBody PointsDTO dto) {
+    public ResponseEntity<String> updateManualPoints(@RequestBody PointsDTO dto) throws NotFoundException {
         pointsService.updatePoints(dto.getUserId(), dto.getNewPoints());
         return ResponseEntity.ok("Punti aggiornati con successo");
     }
@@ -71,10 +71,12 @@ public class PointsController {
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Integer> getMyPoints(Authentication auth) throws NotFoundException {
-        User user = (User) auth.getPrincipal();
+        String username = (String) auth.getPrincipal(); // ✅ CORRETTO
+        User user = userService.findByUsername(username); // carica User
         Points points = pointsService.getPoints(user.getId());
         return ResponseEntity.ok(points.getPoints());
     }
+
 
 
 }

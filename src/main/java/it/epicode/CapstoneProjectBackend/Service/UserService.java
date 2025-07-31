@@ -154,6 +154,10 @@ public class UserService {
 
         return avatarUrl;
     }
+    public User findById(int id) throws NotFoundException {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Utente con ID " + id + " non trovato"));
+    }
 
 
 
