@@ -1,6 +1,5 @@
 package it.epicode.CapstoneProjectBackend.security;
 
-
 import it.epicode.CapstoneProjectBackend.Service.UserService;
 import it.epicode.CapstoneProjectBackend.exception.NotFoundException;
 import it.epicode.CapstoneProjectBackend.exception.UnauthorizedException;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,19 +21,18 @@ import java.util.Arrays;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
-    // vai su errore, implement method
 
     @Autowired
     private JwtTool jwtTool;
+
     @Autowired
     private UserService userService;
-    private final String[] publicGetEndpoints = new String[] {
+
+    private final String[] publicGetEndpoints = new String[]{
             "/api/lyrics/**",
             "/api/feedback",
             "/api/feedback/**"
     };
-
-
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -64,25 +61,13 @@ public class JwtFilter extends OncePerRequestFilter {
             String username = jwtTool.getUsernameFromToken(token);
             User user = userService.findByUsername(username);
 
-// ✅ Usa il costruttore compatibile con Spring Security
-            UserDetails springUser = new org.springframework.security.core.userdetails.User(
-                    user.getUsername(),
-                    user.getPassword(),
-                    user.getAuthorities()
-            );
-            System.out.println("Token ricevuto: " + token);
-            System.out.println("Username nel token: " + username);
-            System.out.println("Authorities: " + springUser.getAuthorities());
-
             Authentication auth = new UsernamePasswordAuthenticationToken(
-                    springUser,
+                    user, // Salva direttamente il tuo oggetto User
                     null,
-                    springUser.getAuthorities()
+                    user.getAuthorities()
             );
 
             SecurityContextHolder.getContext().setAuthentication(auth);
-
-
 
         } catch (NotFoundException e) {
             throw new UnauthorizedException("User collegato al token non trovato");
@@ -90,7 +75,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
@@ -108,9 +92,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 "/uploads/avatars/**"
         };
 
-
         return Arrays.stream(excludedEndpoints)
                 .anyMatch(e -> new AntPathMatcher().match(e, request.getServletPath()));
     }
-
 }
