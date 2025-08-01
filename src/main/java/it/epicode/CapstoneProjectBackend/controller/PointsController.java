@@ -77,14 +77,15 @@ public class PointsController {
 
 
 
-    @GetMapping("/me")
+    @GetMapping("/me/totali")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Integer> getMyPoints(Authentication authentication) throws NotFoundException {
-        String username = authentication.getName();
-        User user = userService.findByUsername(username);
-        Points points = pointsService.getPoints(user.getId());
-        return ResponseEntity.ok(points.getPoints());
+    public ResponseEntity<Integer> getMyTotalPoints(@AuthenticationPrincipal UserDetails userDetails) throws NotFoundException {
+        User user = userService.findByUsername(userDetails.getUsername());
+        int quizPoints = quizService.getPoints(user);
+        int manualPoints = pointsService.getPoints(user.getId()).getPoints();
+        return ResponseEntity.ok(quizPoints + manualPoints);
     }
+
 
 
 
