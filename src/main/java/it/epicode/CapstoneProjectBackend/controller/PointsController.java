@@ -5,6 +5,7 @@ import it.epicode.CapstoneProjectBackend.Service.QuizService;
 import it.epicode.CapstoneProjectBackend.Service.UserService;
 import it.epicode.CapstoneProjectBackend.dto.PointsDTO;
 import it.epicode.CapstoneProjectBackend.exception.NotFoundException;
+import it.epicode.CapstoneProjectBackend.exception.UnauthorizedException;
 import it.epicode.CapstoneProjectBackend.model.Points;
 import it.epicode.CapstoneProjectBackend.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,8 +58,16 @@ public class PointsController {
     }
     @GetMapping("/totali")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Integer> getTotalPoints(Authentication authentication) throws NotFoundException {
+    public ResponseEntity<Integer> getTotalPoints() throws NotFoundException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedException("Utente non autenticato");
+        }
+
         String username = authentication.getName();
+        System.out.println("🎯 USERNAME AUTENTICATO: " + username);
+
         User user = userService.findByUsername(username);
         int quizPoints = quizService.getPoints(user);
         int manualPoints = pointsService.getPoints(user.getId()).getPoints();
