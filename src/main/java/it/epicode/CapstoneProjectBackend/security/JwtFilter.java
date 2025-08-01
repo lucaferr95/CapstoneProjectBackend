@@ -57,8 +57,14 @@ public class JwtFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
         AntPathMatcher matcher = new AntPathMatcher();
 
+        // Ignora richieste OPTIONS (CORS preflight)
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
+
         return Arrays.stream(excludedEndpoints).anyMatch(e -> matcher.match(e, path));
     }
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
