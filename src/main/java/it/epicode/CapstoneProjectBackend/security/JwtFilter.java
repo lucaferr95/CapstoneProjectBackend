@@ -62,7 +62,7 @@ public class JwtFilter extends OncePerRequestFilter {
             User user = userService.findByUsername(username); // <-- tuo User personalizzato
 
             Authentication auth = new UsernamePasswordAuthenticationToken(
-                    user.getUsername(), // <--- NON il tuo user model!
+                    user, // <-- oggetto User come principal!
                     null,
                     user.getAuthorities()
             );
