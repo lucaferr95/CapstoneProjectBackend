@@ -83,8 +83,10 @@ public class JwtFilter extends OncePerRequestFilter {
         String authorization = request.getHeader("Authorization");
 
         if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new UnauthorizedException("Token non presente o malformato");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token non presente o malformato");
+            return;
         }
+
 
         String token = authorization.substring(7);
 
@@ -106,11 +108,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
             System.out.println("✅ Token valido per utente: " + username);
 
-        } catch (UsernameNotFoundException ex) {
-            throw new UnauthorizedException("Utente collegato al token non trovato");
-        } catch (Exception ex) {
-            throw new UnauthorizedException("Token non valido");
-        }
+        }  catch (UsernameNotFoundException ex) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Utente collegato al token non trovato");
+        return;
+    } catch (Exception ex) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token non valido");
+        return;
+    }
+
 
         filterChain.doFilter(request, response);
     }
