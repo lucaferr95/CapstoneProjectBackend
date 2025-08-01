@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -59,15 +60,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             String username = jwtTool.getUsernameFromToken(token);
-            User user = userService.findByUsername(username); // <-- tuo User personalizzato
-
+            UserDetails userDetails = userService.loadUserByUsername(username); // <-- cambia qui
             Authentication auth = new UsernamePasswordAuthenticationToken(
-                    user, // <-- oggetto User come principal!
+                    userDetails,
                     null,
-                    user.getAuthorities()
+                    userDetails.getAuthorities()
             );
-
-
             SecurityContextHolder.getContext().setAuthentication(auth);
 
         } catch (NotFoundException e) {

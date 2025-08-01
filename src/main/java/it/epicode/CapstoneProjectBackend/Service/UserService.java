@@ -9,38 +9,32 @@ import it.epicode.CapstoneProjectBackend.exception.NotFoundException;
 import it.epicode.CapstoneProjectBackend.exception.UnauthorizedException;
 import it.epicode.CapstoneProjectBackend.model.User;
 import it.epicode.CapstoneProjectBackend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.Map;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     @Autowired
     private JavaMailSenderImpl javaMailSender;
+
     @Autowired
     private Cloudinary cloudinary;
 
@@ -56,11 +50,9 @@ public class UserService {
     }
 
     public User saveUser(UserDto userDto) {
-
         if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
             throw new RuntimeException("Username già in uso");
         }
-
         if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
             throw new RuntimeException("Email già in uso");
         }
@@ -78,9 +70,8 @@ public class UserService {
     }
 
     public User getUser(int id) throws NotFoundException {
-        return userRepository.findById(id).
-                orElseThrow(() -> new NotFoundException("User con id "
-                        + id + " non trovato"));
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User con id " + id + " non trovato"));
     }
 
     public Page<User> getAllUsers(int page, int size, String sortBy) {
@@ -88,12 +79,9 @@ public class UserService {
         return userRepository.findAll(pageable);
     }
 
-    public User updateUser(int id, UserDto userDto)
-            throws NotFoundException {
-
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public User updateUser(int id, UserDto userDto) throws NotFoundException {
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
         User userAutenticato = findByUsername(username);
-
 
         if (!userAutenticato.getUserType().name().equals("ADMIN") && userAutenticato.getId() != id) {
             throw new UnauthorizedException("Non puoi modificare un altro user.");
@@ -105,23 +93,22 @@ public class UserService {
         userDaAggiornare.setEmail(userDto.getEmail());
         userDaAggiornare.setUsername(userDto.getUsername());
         userDaAggiornare.setCognome(userDto.getCognome());
+
         if (!passwordEncoder.matches(userDto.getPassword(), userDaAggiornare.getPassword())) {
             userDaAggiornare.setPassword(passwordEncoder.encode(userDto.getPassword()));
         }
-
 
         return userRepository.save(userDaAggiornare);
     }
 
     public void deleteUser(int id) throws NotFoundException {
-        User userAutenticato = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User userAutenticato = (User) org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!userAutenticato.getUserType().name().equals("ADMIN") && userAutenticato.getId() != id) {
             throw new UnauthorizedException("Non puoi eliminare un altro user.");
         }
 
         User userDaEliminare = getUser(id);
-
         userRepository.delete(userDaEliminare);
     }
 
@@ -143,8 +130,7 @@ public class UserService {
     }
 
     public String patchUser(String username, MultipartFile file) throws IOException, NotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Utente non trovato"));
+        User user = findByUsername(username);
 
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
         String avatarUrl = (String) uploadResult.get("secure_url");
@@ -154,12 +140,16 @@ public class UserService {
 
         return avatarUrl;
     }
+
     public User findById(int id) throws NotFoundException {
         return userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Utente con ID " + id + " non trovato"));
     }
 
-
-
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Utente non trovato con username: " + username));
+    }
 
 }
