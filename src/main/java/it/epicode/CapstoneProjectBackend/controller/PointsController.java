@@ -77,7 +77,7 @@ public class PointsController {
 
 
 
-    @GetMapping("/punti/me")
+    @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Integer> getMyPoints(Authentication authentication) throws NotFoundException {
         String username = authentication.getName();
