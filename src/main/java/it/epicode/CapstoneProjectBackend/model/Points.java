@@ -18,6 +18,8 @@ public class Points {
     private LocalDate lastUpdated;
     @Column(nullable = false)
     private int points;
+    private int dailyActionsCount;
+
     @ManyToOne
     private User user;
 
@@ -25,6 +27,7 @@ public class Points {
         this.user = user;
         this.userId = user.getId(); // se hai anche questo campo separato
         this.points = points;
+        this.dailyActionsCount = 0;
         this.lastUpdated = LocalDate.now();
     }
     public Points() {

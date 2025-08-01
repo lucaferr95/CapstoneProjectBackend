@@ -50,17 +50,22 @@ public class PointsService {
         LocalDate today = LocalDate.now();
 
         if (!today.equals(entry.getLastUpdated())) {
+            // Nuovo giorno: reset contatore
             entry.setPoints(pointsToAdd);
+            entry.setDailyActionsCount(1);
             entry.setLastUpdated(today);
-        } else if (entry.getPoints() < 20) {
-            int nuoviPunti = Math.min(20, entry.getPoints() + pointsToAdd);
-            entry.setPoints(nuoviPunti);
+        } else if (entry.getDailyActionsCount() < 4) {
+            // Aggiunta consentita
+            entry.setPoints(entry.getPoints() + pointsToAdd);
+            entry.setDailyActionsCount(entry.getDailyActionsCount() + 1);
         } else {
-            return; // limite raggiunto
+            // Limite raggiunto
+            return;
         }
 
         pointsRepository.save(entry);
     }
+
 
     // Aggiunta libera di punti (es. quiz)
     public void aggiungiPuntiUtente(User user, int amount) {
