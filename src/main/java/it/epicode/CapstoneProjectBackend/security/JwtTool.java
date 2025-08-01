@@ -42,8 +42,7 @@ public class JwtTool {
     }
 
 
-
-    public void validateToken(String token){
+    public void validateToken(String token) {
         Jwts.parser().verifyWith(Keys.hmacShaKeyFor(chiaveSegreta.getBytes()))
                 .build().parse(token);
     }
@@ -54,6 +53,7 @@ public class JwtTool {
 
         return userService.getUser(id);
     }
+
     public String getUsernameFromToken(String token) {
         return Jwts.parser()
                 .verifyWith(Keys.hmacShaKeyFor(chiaveSegreta.getBytes()))
@@ -63,4 +63,12 @@ public class JwtTool {
                 .get("username", String.class);
     }
 
+    public List<String> getRolesFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(chiaveSegreta.getBytes()))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("authorities", List.class);
+    }
 }
