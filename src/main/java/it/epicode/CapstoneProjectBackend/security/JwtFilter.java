@@ -1,10 +1,7 @@
 package it.epicode.CapstoneProjectBackend.security;
 
 import it.epicode.CapstoneProjectBackend.Service.UserService;
-import it.epicode.CapstoneProjectBackend.exception.NotFoundException;
 import it.epicode.CapstoneProjectBackend.exception.UnauthorizedException;
-import it.epicode.CapstoneProjectBackend.model.User;
-import it.epicode.CapstoneProjectBackend.security.JwtTool;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -44,6 +42,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         AntPathMatcher matcher = new AntPathMatcher();
 
+        // Consenti accesso libero a endpoint pubblici GET
         if (method.equals("GET") && Arrays.stream(publicGetEndpoints).anyMatch(p -> matcher.match(p, path))) {
             filterChain.doFilter(request, response);
             return;
@@ -52,24 +51,25 @@ public class JwtFilter extends OncePerRequestFilter {
         String authorization = request.getHeader("Authorization");
 
         if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new UnauthorizedException("Token non presente");
+            throw new UnauthorizedException("Token non presente o malformato");
         }
 
-        String token = authorization.substring(7);
-        jwtTool.validateToken(token);
+        String token = authorization.substring(7); // ✅ DEVE essere fuori dal try per essere visibile
 
         try {
+            jwtTool.validateToken(token);
             String username = jwtTool.getUsernameFromToken(token);
-            UserDetails userDetails = userService.loadUserByUsername(username); // <-- cambia qui
+            UserDetails userDetails = userService.loadUserByUsername(username);
+
             Authentication auth = new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities()
+                    userDetails, null, userDetails.getAuthorities()
             );
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-        } catch (NotFoundException e) {
-            throw new UnauthorizedException("User collegato al token non trovato");
+        } catch (UsernameNotFoundException ex) {
+            throw new UnauthorizedException("Utente collegato al token non trovato");
+        } catch (Exception ex) {
+            throw new UnauthorizedException("Token non valido");
         }
 
         filterChain.doFilter(request, response);
