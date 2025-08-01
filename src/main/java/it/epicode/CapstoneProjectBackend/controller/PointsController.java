@@ -77,14 +77,15 @@ public class PointsController {
 
 
 
-    @GetMapping("/me")
+    @GetMapping("/punti/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Integer> getMyPoints(Authentication auth) throws NotFoundException {
-        String username = auth.getName(); // ✅ Metodo sicuro
+    public ResponseEntity<Integer> getMyPoints(Authentication authentication) throws NotFoundException {
+        String username = authentication.getName();
         User user = userService.findByUsername(username);
         Points points = pointsService.getPoints(user.getId());
         return ResponseEntity.ok(points.getPoints());
     }
+
 
 
 

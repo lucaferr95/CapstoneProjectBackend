@@ -28,11 +28,34 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private UserService userService;
 
+    // Endpoint pubblici GET
     private final String[] publicGetEndpoints = new String[]{
             "/api/lyrics/**",
             "/api/feedback",
             "/api/feedback/**"
     };
+
+    // Endpoint completamente esclusi dal filtro
+    private final String[] excludedEndpoints = new String[]{
+            "/auth/login",
+            "/auth/register",
+            "/html/**",
+            "/login.html",
+            "/register.html",
+            "/css/**",
+            "/js/**",
+            "/images/**",
+            "/favicon.ico",
+            "/uploads/avatars/**"
+    };
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        AntPathMatcher matcher = new AntPathMatcher();
+
+        return Arrays.stream(excludedEndpoints).anyMatch(e -> matcher.match(e, path));
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -42,7 +65,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         AntPathMatcher matcher = new AntPathMatcher();
 
-        // Consenti accesso libero a endpoint pubblici GET
+        // Consenti accesso libero agli endpoint GET pubblici
         if (method.equals("GET") && Arrays.stream(publicGetEndpoints).anyMatch(p -> matcher.match(p, path))) {
             filterChain.doFilter(request, response);
             return;
@@ -54,17 +77,21 @@ public class JwtFilter extends OncePerRequestFilter {
             throw new UnauthorizedException("Token non presente o malformato");
         }
 
-        String token = authorization.substring(7); // ✅ DEVE essere fuori dal try per essere visibile
+        String token = authorization.substring(7);
 
         try {
             jwtTool.validateToken(token);
             String username = jwtTool.getUsernameFromToken(token);
+
             UserDetails userDetails = userService.loadUserByUsername(username);
 
             Authentication auth = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities()
             );
+
             SecurityContextHolder.getContext().setAuthentication(auth);
+
+            System.out.println("✅ Token valido per utente: " + username);
 
         } catch (UsernameNotFoundException ex) {
             throw new UnauthorizedException("Utente collegato al token non trovato");
@@ -73,25 +100,5 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
-    }
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String[] excludedEndpoints = {
-                "/auth/login",
-                "/auth/register",
-                "/html/**",
-                "/login.html",
-                "/register.html",
-                "/css/**",
-                "/js/**",
-                "/images/**",
-                "/favicon.ico",
-                "/api/lyrics/**",
-                "/uploads/avatars/**"
-        };
-
-        return Arrays.stream(excludedEndpoints)
-                .anyMatch(e -> new AntPathMatcher().match(e, request.getServletPath()));
     }
 }

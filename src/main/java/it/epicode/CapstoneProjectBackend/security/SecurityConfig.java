@@ -22,11 +22,10 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity // abilita la classe a essere responsabile della sicurezza dei servizi
 @EnableMethodSecurity // abilita l'utilizzo della preautorizzazione direttamente sui metodi dei controller
-public class SecurityConfig { ;
-    @Bean
-    public JwtFilter jwtFilter() {
-        return new JwtFilter(); // o passa jwtTool se serve
-    }
+public class SecurityConfig {
+
+    @Autowired
+    private JwtFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -49,28 +48,25 @@ public class SecurityConfig { ;
 
                 // permette l'accesso ai servizi pubblici
                 .requestMatchers("/auth/**").permitAll() // login, registrazione
-                        .requestMatchers("/api/lyrics/**").permitAll()
-// testi + traduzioni
-                        .requestMatchers(HttpMethod.GET, "/api/feedback/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/feedback").authenticated()
-                        .requestMatchers("/auth/me").authenticated()
-                        .requestMatchers(HttpMethod.PATCH, "/users/me/avatar").authenticated()
-                        .requestMatchers("/profile/**").authenticated()
-                        .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/feedback/**").hasRole("ADMIN")
-                        .requestMatchers("/api/feedback/backoffice").hasRole("ADMIN")
-                        .requestMatchers("/quiz/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/punti/manuale").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/punti/classifica").hasRole("ADMIN")
-                        .requestMatchers("/punti/**").authenticated()
+                .requestMatchers("/api/lyrics/**").permitAll() // testi + traduzioni
+                .requestMatchers(HttpMethod.GET, "/api/feedback/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/feedback").authenticated()
+                .requestMatchers("/auth/me").authenticated()
+                .requestMatchers(HttpMethod.PATCH, "/users/me/avatar").authenticated()
+                .requestMatchers("/profile/**").authenticated()
+                .requestMatchers("/uploads/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/feedback/**").hasRole("ADMIN")
+                .requestMatchers("/api/feedback/backoffice").hasRole("ADMIN")
+                .requestMatchers("/quiz/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/punti/manuale").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/punti/classifica").hasRole("ADMIN")
+                .requestMatchers("/punti/**").authenticated()
 
-
-
-
-                        // blocca tutte le altre richieste
+                // blocca tutte le altre richieste
                 .anyRequest().denyAll()
         );
-        httpSecurity.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        httpSecurity.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }
@@ -95,5 +91,4 @@ public class SecurityConfig { ;
 
         return source;
     }
-
 }
